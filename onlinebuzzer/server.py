@@ -9,13 +9,17 @@ import uuid
 from aiohttp import web
 
 from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
-from aiortc.contrib.media import MediaBlackhole, MediaPlayer, MediaRecorder, MediaRecorderContext
+from aiortc.contrib.media import (
+    MediaBlackhole,
+    MediaPlayer,
+    MediaRecorder,
+    MediaRecorderContext,
+)
 
 ROOT = os.path.dirname(__file__)
 
 logger = logging.getLogger("pc")
 pcs = set()
-
 
 
 async def index(request):
@@ -41,8 +45,16 @@ async def offer(request):
 
     log_info("Created for %s", request.remote)
 
-    player = MediaPlayer('hw:CARD=U0x41e0x30d3,DEV=0', format='alsa', options={'channels': '1', 'sample_rate': '44100'})
-    recorder = MediaRecorder('plughw:CARD=U0x41e0x30d3,DEV=0', format='alsa', options={'channels': '1', 'sample_rate': '44100'})
+    player = MediaPlayer(
+        args.audio_input,
+        format="alsa",
+        options={"channels": "1", "sample_rate": "44100"},
+    )
+    recorder = MediaRecorder(
+        args.audio_output,
+        format="alsa",
+        options={"channels": "1", "sample_rate": "44100"},
+    )
 
     @pc.on("datachannel")
     def on_datachannel(channel):
@@ -104,6 +116,8 @@ if __name__ == "__main__":
         "--port", type=int, default=8080, help="Port for HTTP server (default: 8080)"
     )
     parser.add_argument("--verbose", "-v", action="count")
+    parser.add_argument("--audio-input", help="Hadrware alsa audio input id")
+    parser.add_argument("--audio-output", help="Hardware alsa audio output id")
     args = parser.parse_args()
 
     if args.verbose:
